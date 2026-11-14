@@ -1,0 +1,363 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Position Sizer</title>
+<meta name="theme-color" content="#151515">
+<meta name="color-scheme" content="dark">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Sizer">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<style>
+  :root {
+    --bg: #151515; --card: #1f1f1f; --pill: #2a2a2a; --field: #262626; --border: #3a3a3a;
+    --lime: #d7ff3f; --lime-hover: #c3ea2c; --text: #f2f2f2; --sub: #8c8c8c; --sub2: #6e6e6e;
+    --danger: #ff6b6b; --green: #3ed07a;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+  html { -webkit-text-size-adjust: 100%; color-scheme: dark; }
+  html, body { margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body { min-height: 100vh; min-height: 100dvh;
+    padding: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right))
+             max(24px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left)); }
+  .app { max-width: 440px; margin: 0 auto; }
+  h1 { font-size: 20px; margin: 4px 0 6px; font-weight: 700; }
+  .underline { width: 70px; height: 3px; background: var(--lime); border-radius: 2px; margin-bottom: 20px; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; column-gap: 10px; row-gap: 0; }
+  .full { grid-column: 1 / -1; }
+  label, .lbl { display: block; font-size: 11px; font-weight: 700; letter-spacing: .06em;
+    color: var(--sub); text-transform: uppercase; margin: 0 0 6px; }
+  .field { margin-bottom: 14px; min-width: 0; }
+  input, select { width: 100%; height: 44px; background: var(--field); color: var(--text);
+    border: 1px solid var(--border); border-radius: 10px; padding: 0 12px;
+    font-size: 16px; /* 16px prevents iOS zoom-on-focus */ font-family: inherit; outline: none;
+    -webkit-appearance: none; appearance: none; }
+  input:focus, select:focus { border-color: var(--lime); }
+  input::placeholder { color: #666; }
+  .select-wrap { position: relative; }
+  .select-wrap::after { content: ""; position: absolute; right: 14px; top: 50%; width: 7px; height: 7px;
+    border-right: 2px solid var(--sub); border-bottom: 2px solid var(--sub);
+    transform: translateY(-70%) rotate(45deg); pointer-events: none; }
+  select { padding-right: 32px; }
+  .pills { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 16px; }
+  .pill { background: var(--pill); border-radius: 10px; padding: 8px 6px; text-align: center; }
+  .pill .k { font-size: 11px; color: var(--sub); }
+  .pill .v { font-size: 15px; font-weight: 700; margin-top: 2px; }
+  .seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--pill); border-radius: 10px;
+    padding: 3px; height: 44px; gap: 3px; }
+  .seg button { border: 0; background: transparent; color: var(--text); font-size: 14px; font-family: inherit;
+    border-radius: 8px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--lime); color: #101010; font-weight: 600; }
+  .opt { display: inline-block; font-size: 9px; font-weight: 700; color: var(--sub2); background: var(--pill);
+    border-radius: 5px; padding: 2px 6px; margin-left: 6px; vertical-align: 1px; }
+  .hint { font-size: 12px; color: var(--sub2); margin: -8px 0 16px; }
+  .btn { width: 100%; height: 48px; border: 0; border-radius: 10px; font-size: 16px; font-weight: 700;
+    font-family: inherit; cursor: pointer; }
+  .btn-primary { background: var(--lime); color: #101010; }
+  .btn-primary:active { background: var(--lime-hover); }
+  .btn-secondary { background: var(--pill); color: var(--text); height: 44px; font-size: 14px; }
+  .btn-secondary:active { background: #333; }
+  .divider { height: 1px; background: var(--border); margin: 18px 0; }
+  .cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+  .card { background: var(--card); border-radius: 12px; padding: 12px 14px; min-width: 0; }
+  .card .t { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: var(--sub); text-transform: uppercase; }
+  .card .n { font-size: 24px; font-weight: 700; margin: 4px 0 2px; overflow-wrap: anywhere; }
+  .card .s { font-size: 12px; color: var(--sub2); }
+  .card.wide { grid-column: 1 / -1; }
+  .card[hidden] { display: none; }
+  .barcard { background: var(--card); border-radius: 12px; padding: 12px 14px; margin: 8px 0 14px; }
+  .barrow { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+  .barrow .t { font-size: 10px; font-weight: 700; letter-spacing: .06em; color: var(--sub); }
+  .barrow .p { font-size: 14px; font-weight: 700; }
+  .track { height: 8px; background: var(--pill); border-radius: 4px; overflow: hidden; }
+  .fill { height: 100%; width: 0; background: var(--green); border-radius: 4px; transition: width .25s ease; }
+  .status { min-height: 18px; font-size: 13px; color: var(--danger); margin-bottom: 10px; }
+  .saved { color: var(--green) !important; }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Position Sizer</h1>
+  <div class="underline"></div>
+
+  <div class="grid">
+    <div class="field">
+      <label for="contract">Contract</label>
+      <div class="select-wrap"><select id="contract"></select></div>
+    </div>
+    <div class="field">
+      <label for="balance">Account balance ($)</label>
+      <input id="balance" inputmode="decimal" autocomplete="off" value="50000">
+    </div>
+  </div>
+
+  <div class="pills">
+    <div class="pill"><div class="k">Tick</div><div class="v" id="pTick"></div></div>
+    <div class="pill"><div class="k">Tick value</div><div class="v" id="pTickVal"></div></div>
+    <div class="pill"><div class="k">Point value</div><div class="v" id="pPointVal"></div></div>
+  </div>
+
+  <div class="grid">
+    <div class="field">
+      <span class="lbl">Risk type</span>
+      <div class="seg" id="riskType">
+        <button type="button" data-v="Percent" aria-pressed="false">Percent</button>
+        <button type="button" data-v="Dollar" aria-pressed="true">Dollar</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="riskValue" id="riskLabel">Risk per trade ($)</label>
+      <input id="riskValue" inputmode="decimal" autocomplete="off" placeholder="e.g. 50">
+    </div>
+
+    <div class="field">
+      <span class="lbl">Stop distance</span>
+      <div class="seg" id="stopType">
+        <button type="button" data-v="Points" aria-pressed="true">Points</button>
+        <button type="button" data-v="Ticks" aria-pressed="false">Ticks</button>
+      </div>
+    </div>
+    <div class="field">
+      <label for="stopValue" id="stopLabel">Stop distance (points)</label>
+      <input id="stopValue" inputmode="decimal" autocomplete="off" placeholder="e.g. 25">
+    </div>
+
+    <div class="field full">
+      <label for="rr">R:R ratio <span class="opt">OPTIONAL</span></label>
+      <input id="rr" inputmode="decimal" autocomplete="off" placeholder="e.g. 2">
+    </div>
+  </div>
+  <div class="hint">Calculates profit target in dollars</div>
+
+  <button class="btn btn-primary" id="calc" type="button">Calculate position size</button>
+  <div class="divider"></div>
+
+  <div class="cards">
+    <div class="card"><div class="t">Contracts</div><div class="n" id="rContracts">--</div><div class="s" id="rContractsSub">&nbsp;</div></div>
+    <div class="card"><div class="t">Dollar risk</div><div class="n" id="rRisk">--</div><div class="s" id="rRiskSub">&nbsp;</div></div>
+    <div class="card wide"><div class="t">Risk per contract</div><div class="n" id="rPer">--</div><div class="s" id="rPerSub">&nbsp;</div></div>
+    <div class="card wide" id="profitCard" hidden><div class="t">Profit target</div><div class="n" id="rProfit">--</div><div class="s" id="rProfitSub">&nbsp;</div></div>
+  </div>
+
+  <div class="barcard">
+    <div class="barrow"><span class="t">RISK AS % OF ACCOUNT</span><span class="p" id="pct">0.00%</span></div>
+    <div class="track"><div class="fill" id="fill"></div></div>
+  </div>
+
+  <div class="status" id="status" role="status" aria-live="polite"></div>
+  <button class="btn btn-secondary" id="save" type="button">Save Settings</button>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  // symbol: [name, tick size, tick value $, point value $]
+  var CONTRACTS = {
+    MNQ: ["Micro Nasdaq-100", 0.25, 0.50, 2.00],
+    MES: ["Micro S&P 500", 0.25, 1.25, 5.00],
+    MYM: ["Micro Dow", 1, 0.50, 0.50],
+    M2K: ["Micro Russell 2000", 0.10, 0.50, 5.00],
+    NQ:  ["Nasdaq-100", 0.25, 5.00, 20.00],
+    ES:  ["S&P 500", 0.25, 12.50, 50.00],
+    YM:  ["Dow", 1, 5.00, 5.00],
+    RTY: ["Russell 2000", 0.10, 5.00, 50.00],
+    MGC: ["Micro Gold", 0.10, 1.00, 10.00],
+    MCL: ["Micro Crude Oil", 0.01, 1.00, 100.00]
+  };
+  var DEFAULTS = { contract: "MNQ", balance: "50000", riskType: "Dollar", riskValue: "",
+                   stopType: "Points", stopValue: "", rr: "" };
+  var KEY = "positionSizer.settings.v1";
+
+  var $ = function (id) { return document.getElementById(id); };
+  var state = { riskType: "Dollar", stopType: "Points" };
+
+  function fmtNum(v) { return String(parseFloat(v.toFixed(4))); }
+  function fmtMoney(v) {
+    return "$" + v.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function parseNum(s) {
+    var t = String(s).replace(/[,\s$]/g, "");
+    if (t === "" || !/^-?\d*\.?\d+$|^-?\d+\.$/.test(t)) return NaN;
+    return parseFloat(t);
+  }
+
+  // ---- contract dropdown ----
+  var sel = $("contract");
+  Object.keys(CONTRACTS).forEach(function (sym) {
+    var o = document.createElement("option");
+    o.value = sym; o.textContent = sym + " — " + CONTRACTS[sym][0];
+    sel.appendChild(o);
+  });
+  function updatePills() {
+    var c = CONTRACTS[sel.value] || CONTRACTS.MNQ;
+    $("pTick").textContent = fmtNum(c[1]);
+    $("pTickVal").textContent = fmtMoney(c[2]);
+    $("pPointVal").textContent = fmtMoney(c[3]);
+  }
+  sel.addEventListener("change", updatePills);
+
+  // ---- segmented controls ----
+  function setSeg(id, value) {
+    Array.prototype.forEach.call($(id).querySelectorAll("button"), function (b) {
+      b.setAttribute("aria-pressed", b.dataset.v === value ? "true" : "false");
+    });
+  }
+  function refreshLabels() {
+    $("riskLabel").textContent = state.riskType === "Percent" ? "Risk per trade (%)" : "Risk per trade ($)";
+    $("stopLabel").textContent = state.stopType === "Ticks" ? "Stop distance (ticks)" : "Stop distance (points)";
+  }
+  function wireSeg(id, key) {
+    $(id).addEventListener("click", function (e) {
+      var b = e.target.closest("button");
+      if (!b) return;
+      state[key] = b.dataset.v;
+      setSeg(id, state[key]);
+      refreshLabels();
+    });
+  }
+  wireSeg("riskType", "riskType");
+  wireSeg("stopType", "stopType");
+
+  // ---- calculation ----
+  function setStatus(msg, good) {
+    var s = $("status");
+    s.textContent = msg || "";
+    s.classList.toggle("saved", !!good);
+  }
+  function clearResults() {
+    $("rContracts").textContent = "--"; $("rContractsSub").innerHTML = "&nbsp;";
+    $("rRisk").textContent = "--"; $("rRiskSub").innerHTML = "&nbsp;";
+    $("rPer").textContent = "--"; $("rPerSub").innerHTML = "&nbsp;";
+    $("profitCard").hidden = true;
+    $("pct").textContent = "0.00%"; $("fill").style.width = "0%";
+  }
+
+  function calculate() {
+    setStatus("");
+    var c = CONTRACTS[sel.value] || CONTRACTS.MNQ;
+    var tick = c[1], pointValue = c[3];
+
+    var balance = parseNum($("balance").value);
+    var riskRaw = parseNum($("riskValue").value);
+    var stopRaw = parseNum($("stopValue").value);
+
+    if (isNaN(balance) || balance <= 0) { clearResults(); return setStatus("Enter an account balance greater than 0."); }
+    if (isNaN(riskRaw) || riskRaw <= 0) { clearResults(); return setStatus("Enter a risk per trade greater than 0."); }
+    if (isNaN(stopRaw) || stopRaw <= 0) { clearResults(); return setStatus("Enter a stop distance greater than 0."); }
+
+    var dollarRisk;
+    if (state.riskType === "Percent") {
+      if (riskRaw > 100) { clearResults(); return setStatus("Risk percent must be 100 or less."); }
+      dollarRisk = balance * riskRaw / 100;
+    } else {
+      dollarRisk = riskRaw;
+    }
+
+    var stopPoints, stopTicks;
+    if (state.stopType === "Ticks") { stopTicks = stopRaw; stopPoints = stopRaw * tick; }
+    else { stopPoints = stopRaw; stopTicks = stopRaw / tick; }
+
+    var perContract = stopPoints * pointValue;
+    var raw = dollarRisk / perContract;
+    if (!isFinite(raw) || !isFinite(perContract) || perContract <= 0 || raw > 1e6) {
+      clearResults(); return setStatus("Those numbers are out of range. Check your stop distance.");
+    }
+    var contracts = Math.floor(raw + 1e-9);
+    var perSub = fmtNum(stopTicks) + " ticks · " + fmtNum(stopPoints) + " pts";
+
+    $("rPer").textContent = fmtMoney(perContract);
+    $("rPerSub").textContent = perSub;
+    $("rContractsSub").textContent = "Rounded down from " + raw.toFixed(2);
+
+    if (contracts < 1) {
+      $("rContracts").textContent = "0";
+      $("rRisk").textContent = fmtMoney(0);
+      $("rRiskSub").textContent = "0.00% of account";
+      $("pct").textContent = "0.00%"; $("fill").style.width = "0%";
+      $("profitCard").hidden = true;
+      return setStatus("Risk budget is smaller than the risk of one contract at this stop distance.");
+    }
+
+    var actual = contracts * perContract;
+    var pct = actual / balance * 100;
+    $("rContracts").textContent = String(contracts);
+    $("rRisk").textContent = fmtMoney(actual);
+    $("rRiskSub").textContent = pct.toFixed(2) + "% of account";
+    $("pct").textContent = pct.toFixed(2) + "%";
+    $("fill").style.width = Math.min(pct / 5, 1) * 100 + "%";
+
+    var rrText = $("rr").value.trim();
+    if (rrText) {
+      var rr = parseNum(rrText);
+      if (isNaN(rr) || rr <= 0) { $("profitCard").hidden = true; return setStatus("R:R ratio must be a number greater than 0."); }
+      $("rProfit").textContent = fmtMoney(actual * rr);
+      $("rProfitSub").textContent = parseFloat(rr.toFixed(4)) + ":1 reward:risk";
+      $("profitCard").hidden = false;
+    } else {
+      $("profitCard").hidden = true;
+    }
+  }
+  $("calc").addEventListener("click", calculate);
+  Array.prototype.forEach.call(document.querySelectorAll("input"), function (el) {
+    el.addEventListener("keydown", function (e) { if (e.key === "Enter") { el.blur(); calculate(); } });
+  });
+
+  // ---- save / load ----
+  function load() {
+    var data = {};
+    for (var k in DEFAULTS) data[k] = DEFAULTS[k];
+    try {
+      var saved = JSON.parse(localStorage.getItem(KEY) || "null");
+      if (saved && typeof saved === "object") {
+        for (var key in DEFAULTS) if (typeof saved[key] === "string") data[key] = saved[key];
+      }
+    } catch (e) {}
+    if (!CONTRACTS[data.contract]) data.contract = "MNQ";
+    if (data.riskType !== "Percent" && data.riskType !== "Dollar") data.riskType = "Dollar";
+    if (data.stopType !== "Points" && data.stopType !== "Ticks") data.stopType = "Points";
+
+    sel.value = data.contract;
+    $("balance").value = data.balance;
+    $("riskValue").value = data.riskValue;
+    $("stopValue").value = data.stopValue;
+    $("rr").value = data.rr;
+    state.riskType = data.riskType; state.stopType = data.stopType;
+    setSeg("riskType", state.riskType); setSeg("stopType", state.stopType);
+    refreshLabels(); updatePills();
+    if (data.riskValue && data.stopValue) calculate();
+  }
+
+  var saveTimer;
+  $("save").addEventListener("click", function () {
+    var data = { contract: sel.value, balance: $("balance").value.trim(), riskType: state.riskType,
+                 riskValue: $("riskValue").value.trim(), stopType: state.stopType,
+                 stopValue: $("stopValue").value.trim(), rr: $("rr").value.trim() };
+    var btn = $("save");
+    try {
+      localStorage.setItem(KEY, JSON.stringify(data));
+      btn.textContent = "Saved ✓"; btn.style.color = "var(--green)";
+    } catch (e) {
+      btn.textContent = "Save failed"; btn.style.color = "var(--danger)";
+    }
+    clearTimeout(saveTimer);
+    saveTimer = setTimeout(function () { btn.textContent = "Save Settings"; btn.style.color = ""; }, 1500);
+  });
+
+  load();
+
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () {
+      navigator.serviceWorker.register("sw.js").catch(function () {});
+    });
+  }
+})();
+</script>
+</body>
+</html>
